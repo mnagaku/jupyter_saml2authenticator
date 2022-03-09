@@ -236,16 +236,21 @@ class Saml2Authenticator(Authenticator):
         if user_identity is None:
             raise web.HTTPError(400, "no SAML2 user")
 
-#        user_email = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('email', 'Email')][0]
-#        user_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('username', 'UserName')][0]
-#        user_first_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('first_name', 'FirstName')][0]
-#        user_last_name = user_identity[settings.SAML2_AUTH.get('ATTRIBUTES_MAP', {}).get('last_name', 'LastName')][0]
-
         app_log.info('user_identity: %r', user_identity)
-        if not self.saml2_attribute_username:
-            app_log.error('No saml2_attribute_username configured!')
-            raise web.HTTPError(500)
-        username = user_identity[self.saml2_attribute_username][0]
+
+        subject = authn_response.get_subject()
+        if subject is None:
+            raise web.HTTPError(400, "no SAML2 NameID subject")
+
+        username = subject.text
+        if username is None:
+            raise web.HTTPError(400, "no SAML2 NameID subject text")
+
+        app_log.info('NameID: %s', username)
+
+        if self.saml2_attribute_username:
+            username = user_identity[self.saml2_attribute_username][0]
+
         return username
 
 class LocalSaml2Authenticator(LocalAuthenticator, Saml2Authenticator):
