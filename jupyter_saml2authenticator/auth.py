@@ -21,6 +21,9 @@ class Saml2ACSHandler(BaseHandler):
     from authenticating with our IdP). We will attempt to log in a user, which
     will call the authenticate() method of SAML2Authenticator.  """
 
+    def check_xsrf_cookie(self):
+        return
+
     def get_next_url(self, user=None):
         """Get the redirect target from the state field"""
         # JupyterHub 0.8 adds default .get_next_url for a fallback
@@ -58,6 +61,9 @@ class Saml2ACSHandler(BaseHandler):
         self.redirect(self.get_next_url(user))
 
 class Saml2AuthLoginHandler(BaseHandler):
+
+    def check_xsrf_cookie(self):
+        return
 
     def get(self):
         saml_client = self.authenticator.get_saml_client(self)
